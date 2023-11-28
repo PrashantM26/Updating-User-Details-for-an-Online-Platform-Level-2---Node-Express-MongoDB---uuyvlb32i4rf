@@ -11,6 +11,46 @@ const userDetails = JSON.parse(
 app.use(express.json());
 
 // Write PATCH endpoint for editing user details
+app.patch("/api/v1/details/:id", (req, res) => {
+  const { id } = req.params;
+  const { name, mail, number } = req.body;
+
+  // Find the user by id
+  const userIndex = userDetails.findIndex((user) => user.id == id);
+
+  // Check if the user with the given id exists
+  if (userIndex === -1) {
+    return res.status(404).json({
+      status: "failed",
+      message: "User not found!",
+    });
+  }
+
+  // Update user details
+  userDetails[userIndex].name = name;
+  userDetails[userIndex].mail = mail;
+  userDetails[userIndex].number = number;
+
+  // Write the updated details to the file
+  fs.writeFile(
+    `${__dirname}/data/userDetails.json`,
+    JSON.stringify(userDetails),
+    (err) => {
+      if (err) {
+        return res.status(500).json({
+          status: "failed",
+          message: "Internal Server Error",
+        });
+      }
+
+      res.status(200).json({
+        status: "success",
+        message: `User details updated successfully for id: ${id}`,
+        product: userDetails[userIndex],
+      });
+    }
+  );
+});
 
 // POST endpoint for registering new user
 app.post("/api/v1/details", (req, res) => {
